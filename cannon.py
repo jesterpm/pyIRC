@@ -10,7 +10,7 @@ class Cannon(object):
         self.firecount = {}
 
     def onChanMsg(self, context, user, channel, targetprefix, msg):
-        matches = re.findall("^!fire\\s+(.*)$", msg)
+        matches = re.findall("^!fire\\s+(\\S+)", msg)
         if matches:
             nickname = matches[0]
             if any([nickname.lower() == usr.nick.lower() for usr in channel.users]):
