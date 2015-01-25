@@ -15,7 +15,7 @@ bot's nick. It will respond to the follow commands:
     * remove webhook for <application>
 """
 class DeployerBot:
-    def __init__(self, expiry=1800):
+    def __init__(self):
         self.__name__ = "DeployerBot"
         self.__version__ = "0.0.1"
         self.deploy_pattern = re.compile(r"deploy (?:(?:the )?application )?(\S+)", re.IGNORECASE)
