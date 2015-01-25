@@ -11,7 +11,7 @@ bot's nick. It will respond to the follow commands:
 
     * deploy <application>
     * list webhooks
-    * add webhook for <application> with url <url> and secret <secret>
+    * add webhook <application> for <repository> with url <url> and secret <secret>
     * remove webhook for <application>
 """
 class DeployerBot:
@@ -20,7 +20,11 @@ class DeployerBot:
         self.__version__ = "0.0.1"
         self.deploy_pattern = re.compile(r"deploy (?:(?:the )?application )?(\S+)", re.IGNORECASE)
         self.list_pattern = re.compile(r"list (?:.* )?webhooks", re.IGNORECASE);
-        self.add_pattern = re.compile(r"add (?:.* )?webhook (?:(?:.* )?(?:application|for) )?(\S+) (?:(?:.* )?(?:url|address) )?(\S+) (?:(?:.* )secret )?(\S+)", re.IGNORECASE)
+        self.add_pattern = re.compile(r"add (?:.* )?webhook " \
+                                      r"(?:(?:.* )?(?:application|for|named) )?(\S+) " \
+                                      r"(?:(?:.* )?repo(?:sitory)? )?(\S+) " \
+                                      r"(?:(?:.* )?(?:url|address) )?(\S+) " \
+                                      r"(?:(?:.* )?secret )?(\S+)", re.IGNORECASE)
 
         self.applications = dict()
 
@@ -52,8 +56,8 @@ class DeployerBot:
 
         matches = self.add_pattern.findall(msg)
         if matches is not None:
-            for application, url, secret in matches:
-                self.addApplication(IRC, sender, dest, application, url, secret)
+            for application, repo, url, secret in matches:
+                self.addApplication(IRC, sender, dest, application, repo, url, secret)
                 return
 
     def deploy(self, IRC, sender, dest, application):
@@ -62,15 +66,16 @@ class DeployerBot:
 
     def listWebHooks(self, IRC, sender, dest):
         if self.applications:
-            msg = "I know the following applications: " + ", ".join([app for (app, url, key) in self.applications.values()])
+            msg = "I know the following applications: " \
+                  ", ".join([app for (app, repo, url, key) in self.applications.values()])
             dest.msg(msg)
         else:
             dest.msg("I don't have any hooks :(")
 
-    def addApplication(self, IRC, sender, dest, application, url, secret):
+    def addApplication(self, IRC, sender, dest, application, repo, url, secret):
         key = application.lower()
         if key in self.applications:
             dest.msg("I already have an application called %s" % application)
         else:
-            self.applications[key] = (application, url, secret)
+            self.applications[key] = (application, repo, url, secret)
             dest.msg("I've added application %s" % application)
