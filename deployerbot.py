@@ -1,5 +1,7 @@
-#!/usr/bin/python
+import hmac, hashlib
+import json
 import re
+import requests
 
 """
 DeployerBot sends fires webhooks on command. Although you could really do
@@ -61,7 +63,34 @@ class DeployerBot:
                 return
 
     def deploy(self, IRC, sender, dest, application):
-        dest.msg("Ok, I will deploy %s" % application)
+        key = application.lower()
+        if key not in self.applications:
+            dest.msg("I don't know how to deploy %s" % application)
+            return
+
+        app, repo, url, secret = self.applications[key]
+        dest.msg("Ok, I'm deploying %s..." % application)
+
+        payload = {
+                    "ref": "refs/heads/master",
+                    "repository": {
+                        "name": repo,
+                        "clone_url": "https://github.com/%s.git" % repo,
+                    }
+                  }
+        data = json.dumps(payload)
+
+        headers = {'content-type': 'application/json', 'X-GitHub-Event': 'push'}
+        if secret:
+            digest = hmac.new(secret.encode(), data.encode(), hashlib.sha1)
+            headers['X-Hub-Signature'] = "sha1=" + digest.hexdigest()
+
+        r = requests.post(url, data=data, headers=headers)
+
+        if r.status_code == requests.codes.ok:
+            dest.msg("I successfully deployed %s" % application)
+        else:
+            dest.msg("I failed to deploy %s. I got HTTP status code %d" % (application, r.status_code))
 
 
     def listWebHooks(self, IRC, sender, dest):
