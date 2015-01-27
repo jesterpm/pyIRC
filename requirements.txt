@@ -1,0 +1,2 @@
+# requests is required for the deployerbot addon.
+requests>=2.3.0
