@@ -65,11 +65,11 @@ class DeployerBot:
     def deploy(self, IRC, sender, dest, application):
         key = application.lower()
         if key not in self.applications:
-            dest.msg("I don't know how to deploy %s" % application)
+            dest.msg("I don't know how to deploy %s" % application, origin=self)
             return
 
         app, repo, url, secret = self.applications[key]
-        dest.msg("Ok, I'm deploying %s..." % application)
+        dest.msg("Ok, I'm deploying %s..." % application, origin=self)
 
         payload = {
                     "ref": "refs/heads/master",
@@ -88,23 +88,24 @@ class DeployerBot:
         r = requests.post(url, data=data, headers=headers)
 
         if r.status_code == requests.codes.ok:
-            dest.msg("I successfully deployed %s" % application)
+            dest.msg("I successfully deployed %s" % application, origin=self)
         else:
-            dest.msg("I failed to deploy %s. I got HTTP status code %d" % (application, r.status_code))
+            dest.msg("I failed to deploy %s. I got HTTP status code %d" \
+                      % (application, r.status_code), origin=self)
 
 
     def listWebHooks(self, IRC, sender, dest):
         if self.applications:
             msg = "I know the following applications: " \
                   ", ".join([app for (app, repo, url, key) in self.applications.values()])
-            dest.msg(msg)
+            dest.msg(msg, origin=self)
         else:
-            dest.msg("I don't have any hooks :(")
+            dest.msg("I don't have any hooks :(", origin=self)
 
     def addApplication(self, IRC, sender, dest, application, repo, url, secret):
         key = application.lower()
         if key in self.applications:
-            dest.msg("I already have an application called %s" % application)
+            dest.msg("I already have an application called %s" % application, origin=self)
         else:
             self.applications[key] = (application, repo, url, secret)
-            dest.msg("I've added application %s" % application)
+            dest.msg("I've added application %s" % application, origin=self)
